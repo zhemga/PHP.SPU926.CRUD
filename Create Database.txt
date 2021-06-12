@@ -1,0 +1,11 @@
+CREATE DATABASE db_spu926;
+
+CREATE TABLE animals (
+id INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(50) NOT NULL,
+image VARCHAR(250) NULL
+)
+
+INSERT INTO `animals` (`id`, `name`, `image`) VALUES (NULL, 'Манул', 'manul.jpg');
+INSERT INTO `animals` (`name`, `image`) VALUES ('Тигр', 'tigra.jpg');
+INSERT INTO `animals` (`name`, `image`) VALUES ('Ведмідь', 'bear.jpg');

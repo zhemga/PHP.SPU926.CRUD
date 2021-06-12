@@ -1,0 +1,8 @@
+.h-200px{
+    height: 200px !important;
+}
+
+.row,
+.preview {
+    overflow: hidden;
+}
