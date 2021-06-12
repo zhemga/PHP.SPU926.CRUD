@@ -1,8 +1,8 @@
 <?php
-if (!empty($_GET['Search'])) {
-    include "connection_database.php";
-    $result = $myPDO->query("SELECT * FROM `db_spu926`.`animals` WHERE (CONVERT(`id` USING utf8) LIKE '%{$_GET['Search']}}%' OR CONVERT(`name` USING utf8) LIKE '%{$_GET['Search']}%')")->fetchAll();
-} else if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if (isset($_GET["name"]))
+    $name = $_GET["name"];
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($_POST['delete']) && is_numeric($_POST['delete'])) {
         "<script type='text/javascript'>alert('das');</script>";
         deleteAnimal($_POST['delete']);
@@ -30,17 +30,21 @@ function deleteAnimal($id)
 
 <a href="/add.php" class="btn btn-danger mb-3 float-end">Додати</a>
 
-<div class="input-group mb-3">
-    <input id="searchInput" type="search" class="form-control rounded-start" placeholder="Пошук" aria-label="Search"
-           aria-describedby="search-addon"/>
-    <button type="button" class="btn btn-warning" onclick="search()">Пошук</button>
-</div>
+<form class="mb-5" method="get">
+    <div>
+        <input type="text" name="name" class="form-control" placeholder="Пошук по назві" value="<?php if (isset($name)) echo $name; ?>">
+    </div>
+    <button type="submit" class="btn btn-primary float-end mt-2">Пошук</button>
+</form>
 
 <?php
-$page = $_GET["page"];
+$where = "";
+
+if(isset($name))
+    $where = " WHERE `name` LIKE '%{$name}%' ";
 
 $show_item = 3;
-$sql = "SELECT COUNT(*) as count FROM `animals`";
+$sql = "SELECT COUNT(*) as count FROM `animals`" . $where;
 
 $command = $myPDO->prepare($sql);
 $command->execute();
@@ -48,12 +52,15 @@ $row = $command->fetch(PDO::FETCH_ASSOC);
 $count_items = $row["count"];
 $count_pages = ceil($count_items / $show_item);
 
-if (!isset($page) || !is_numeric($page) || $page < 1 || $page > $count_pages) {
+if (isset($_GET["page"]) && is_numeric($_GET["page"]) && $_GET["page"] > 0 && $_GET["page"] <= $count_pages) {
+    $page = $_GET["page"];
+}
+else{
     $page = 1;
 }
 
 
-$result = $myPDO->query("SELECT `id`,`name`,`image` FROM `animals` LIMIT " . ($page - 1) * $show_item . "," . $show_item)
+$result = $myPDO->query("SELECT `id`,`name`,`image` FROM `animals`" . $where . "LIMIT " . ($page - 1) * $show_item . "," . $show_item)
 ?>
 
 <?php
@@ -95,7 +102,7 @@ echo "
 <nav aria-label="Page navigation example">
     <ul class="pagination">
         <li class="page-item">
-            <a class="page-link btn <?php if (1 == $page) echo 'disabled'; ?>" href="?page=<?php echo $page - 1; ?>"
+            <a class="page-link btn <?php if (1 == $page) echo 'disabled'; ?>" href="?page=<?php echo $page - 1; if (isset($name)) echo "&name={$name}"; ?>"
                aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
             </a>
@@ -103,37 +110,37 @@ echo "
         <?php
         $max_page = 10;
         if ($count_pages > 0) {
-            if ($count_pages < $max_page) {
+            if ($count_pages <= $max_page) {
                 for ($i = 1; $i <= $count_pages; $i++) {
-                    echo "<li class='page-item " ?><?php if ($i == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$i}'>$i</a></li>";
+                    echo "<li class='page-item "; if ($i == $page) echo "active"; echo "'><a class='page-link' href='?page={$i}"; if (isset($name)) echo "&name={$name}"; echo "'>$i</a></li>";
                 }
             } elseif ($page < $max_page) {
                 for ($i = 1; $i <= $max_page; $i++) {
-                    echo "<li class='page-item " ?><?php if ($i == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$i}'>$i</a></li>";
+                    echo "<li class='page-item "; if ($i == $page) echo "active"; echo "'><a class='page-link' href='?page={$i}"; if (isset($name)) echo "&name={$name}"; echo "'>$i</a></li>";
                 }
                 echo "<li class='page-item disabled'><a class='page-link' href='#'>...</a></li>";
-                echo "<li class='page-item " ?><?php if ($count_pages == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$count_pages}'>$count_pages</a></li>";
+                echo "<li class='page-item "; if ($count_pages == $page) echo "active"; echo "'><a class='page-link' href='?page={$count_pages}"; if (isset($name)) echo "&name={$name}"; echo "'>$count_pages</a></li>";
             } elseif ($page >= 10 && $page < $count_pages - $max_page) {
                 echo "<li class='page-item'><a class='page-link' href='?page=1'>1</a></li>";
                 echo "<li class='page-item disabled'><a class='page-link' href='#'>...</a></li>";
                 $from = floor($page / $max_page) * $max_page;
                 for ($i = $from - 1; $i <= $from + $max_page; $i++) {
-                    echo "<li class='page-item " ?><?php if ($i == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$i}'>$i</a></li>";
+                    echo "<li class='page-item "; if ($i == $page) echo "active"; echo "'><a class='page-link' href='?page={$i}"; if (isset($name)) echo "&name={$name}"; echo "'>$i</a></li>";
                 }
                 echo "<li class='page-item disabled'><a class='page-link' href='#'>...</a></li>";
-                echo "<li class='page-item " ?><?php if ($count_pages == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$count_pages}'>$count_pages</a></li>";
+                echo "<li class='page-item "; if ($count_pages == $page) echo "active"; echo "'><a class='page-link' href='?page={$count_pages}"; if (isset($name)) echo "&name={$name}"; echo "'>$count_pages</a></li>";
             } else {
                 echo "<li class='page-item'><a class='page-link' href='?page=1'>1</a></li>";
                 echo "<li class='page-item disabled'><a class='page-link' href='#'>...</a></li>";
                 for ($i = $count_pages - $max_page - 1; $i <= $count_pages; $i++) {
-                    echo "<li class='page-item " ?><?php if ($i == $page) echo "active"; ?><?php echo "'><a class='page-link' href='?page={$i}'>$i</a></li>";
+                    echo "<li class='page-item "; if ($i == $page) echo "active"; echo "'><a class='page-link' href='?page={$i}"; if (isset($name)) echo "&name={$name}"; echo "'>$i</a></li>";
                 }
             }
         }
         ?>
         <li class="page-item">
             <a class="page-link btn <?php if ($count_pages == $page) echo 'disabled'; ?>"
-               href="?page=<?php echo $page + 1; ?>" aria-label="Next">
+               href="?page=<?php echo $page + 1; if (isset($name)) echo "&name={$name}";?>" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
             </a>
         </li>
